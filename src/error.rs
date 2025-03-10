@@ -11,6 +11,13 @@ pub enum DatabaseError {
     #[error("invalid port value, please use port in range 1024 to 49151 insted of {0}")]
     InvalidPortValue(u16),
 
+    // connection
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error("invalid request")]
+    InvalidRequest, 
+
     // unknown
     #[error("unknown error")]
     Unknown,
