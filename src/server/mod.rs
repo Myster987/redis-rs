@@ -1,26 +1,18 @@
+use std::sync::Arc;
+
 use tokio::net::TcpListener;
 
-use crate::{error::DatabaseResult, utils::config::Config};
+pub mod protocol;
+pub mod storage;
 
-#[derive(Debug)]
-pub struct Database {
-    config: Config,
-    listener: TcpListener
-}
+pub async fn start(addr: &str) -> anyhow::Result<()> {
+    let listener = TcpListener::bind(addr).await.unwrap();
+    let db = Arc::new(storage::Database::new());
 
-impl Database {
-    pub async fn new() -> DatabaseResult<Self> {
-        let config = Config::load()?;
-        let listener = TcpListener::bind(format!("{}:{}", config.HOST, config.PORT)).await?;
-
-        Ok(Self { config, listener })
-    }   
-
-    pub async fn listen(&self) -> DatabaseResult<()> {
-        loop {
-            let (socket, _) = self.listener.accept().await.unwrap();
-        }
-
-        Ok(())
+    log::info!("Listening on: {}", listener.local_addr().unwrap());
+    loop {
+        let (conn, conn_addr) = listener.accept().await?;
+        log::info!("Accepted connection from: {}", conn_addr);
+        protocol::handle_connection(conn_addr, conn, db.clone());
     }
 }
