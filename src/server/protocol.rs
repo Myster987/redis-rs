@@ -56,8 +56,9 @@ pub fn handle_connection(addr: SocketAddr, stream: TcpStream, db_clone: Arc<Data
                             let _ = conn.write(response).await;
                         }
                         CommandType::Delete => {
-                            // let response = Response::new(db_clone.delete(&command.key));
-                            let response = Response::error("try again :D");
+                            let response = Response::new(db_clone.delete(&command.key));
+                            // test error to check if it would parse response correctly
+                            // let response = Response::error("try again :D");
                             let _ = conn.write(response).await;
                         }
                     }
