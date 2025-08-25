@@ -1,24 +1,23 @@
 use thiserror::Error;
 
-pub type DatabaseResult<T> = std::result::Result<T, DatabaseError>;
+pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug, Error)]
-pub enum DatabaseError {
-    // config
-    #[error("invalid port format")]
-    InvalidPortFormat(#[from] std::num::ParseIntError),
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("invalid bytes")]
+    InvalidBytes,
+    #[error("request is incomplete")]
+    Incomplete,
+    #[error("unknown command type")]
+    UnknownCommand,
+    #[error("connection was closed")]
+    ConnectionClosed,
 
-    #[error("invalid port value, please use port in range 1024 to 49151 insted of {0}")]
-    InvalidPortValue(u16),
+    #[error("bad request: {msg}")]
+    BadRequest { msg: String },
+    #[error("database responded with error: {msg}")]
+    DatabaseError { msg: String },
 
-    // connection
     #[error(transparent)]
     Io(#[from] std::io::Error),
-
-    #[error("invalid request")]
-    InvalidRequest, 
-
-    // unknown
-    #[error("unknown error")]
-    Unknown,
 }
