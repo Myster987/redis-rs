@@ -1,19 +1,34 @@
-use server::Database;
+use std::{env, process::exit};
 
-pub mod error;
-pub mod server;
-pub mod utils;
-pub mod shared;
-pub mod tcp;
-pub mod frame;
+mod client;
+mod error;
+mod server;
+mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    simple_logger::init_with_level(log::Level::Info).unwrap();
+    simple_logger::init()?;
+    dotenvy::dotenv()?;
 
-    let db = Database::new().await?;
+    let host_key = "HOST";
+    let port_key = "PORT";
 
-    log::info!("{:?}", db);
+    let host = match env::var(host_key) {
+        Ok(h) => h,
+        Err(_) => {
+            log::error!("Expected \"{host_key}\" env.");
+            exit(1);
+        }
+    };
+    let port = match env::var(port_key) {
+        Ok(p) => p,
+        Err(_) => {
+            log::error!("Expected \"{port_key}\" env.");
+            exit(1);
+        }
+    };
+
+    server::start(&format!("{host}:{port}")).await?;
 
     Ok(())
 }
